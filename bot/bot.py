@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
-from os import getenv
-import shelve
+import os
+import time
+#import shelve
 from telebot import TeleBot
 
 import text_information as text_info
@@ -9,12 +10,13 @@ import LLM_integration as LLM
 
 # Загрузка констант из .env
 load_dotenv()
-bot_token = getenv('TG_BOT_TOKEN')
+bot_token = os.getenv('TG_BOT_TOKEN')
 
 bot = TeleBot(token=bot_token)
 
 # Подключение к локальному хранилищу
-storage = shelve.open('education')
+#storage = shelve.open('education')
+storage = {}
 
 
 # Обработка команды /start
@@ -85,24 +87,26 @@ def questions_handler(message):
     elif text not in text_info.questions:
         another_message(message, questions_handler)
     else:
-        answer_question(message)
+       answer_question(message)
 
 
 # Ответ на вопрос
 def answer_question(message):
     chat_id = message.chat.id
     text = message.text
-    if text == 'Правила приёма':
-        path = '../docs/Правила приёма.pdf'
+    specialization = storage[str(chat_id)]
+
+    if text == 'Правила приема в ПИШ':
+        path = 'D:/AesTelegramBot/docs/Правила приема.pdf'
+        text = 'Правила приема'
     else:
-        # Считывание специальности из локального хранилища
-        specialization = storage[str(chat_id)]
-        path = f'../docs/{specialization}.json'
+        path = f'D:/AesTelegramBot/docs/{specialization}.pdf'
+    
     # Ответ на вопрос
     response = LLM.LLM_chain(path, text)
     bot.send_message(
         chat_id=chat_id, 
-        text=f'Ответ на вопрос \"{text}\" по специальности {specialization}:\n{response}'
+        text=f'Ответ на вопрос \"{text}\" по специальности {specialization}:\n\n{response}'
     )
     # Возврат к этому же обработчику
     bot.register_next_step_handler(message, questions_handler)
@@ -157,9 +161,9 @@ def email(message):
 def open_question(message):
     chat_id = message.chat.id
     text = message.text
-    # Get info from local storage
+    # Получение информации из хранилища
     mail_info = storage[str(chat_id) + '_mail']
-    # Send mail
+    # Отправка письма
     bot.send_message(
         chat_id, 
         f'**to:** {mail_info[0]}\n**from:** {mail_info[1]}\n**email:** {mail_info[2]}\n**text:** {text}'
@@ -186,4 +190,4 @@ if __name__ == '__main__':
     bot.polling()
 
 # Закрытие подключения к локальному хранилищу
-storage.close()
+#storage.close()

@@ -19,8 +19,8 @@ embeddings = YandexGPTEmbeddings(iam_token=iam_token, folder_id=folder_id)
 
 def LLM_chain(path, question):
     extention = path.split('.')[-1]
+    
     if extention == 'pdf':
-        #loader = PyPDFLoader("docs/Правила приема/Правила приема.pdf")
         loader = PyPDFLoader(path)
     elif extention == 'json':
         loader = JSONLoader(
@@ -30,12 +30,15 @@ def LLM_chain(path, question):
         )
     documents = loader.load()
 
+    #print(documents)
+
     # Разделение текста на чанки
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     texts = text_splitter.split_documents(documents)
 
     # Создание эмбеддингов
     embeddings_list = []
+    #print(texts)
     for text in texts:
         embedding = embeddings.embed_documents([text.page_content])
         embeddings_list.extend(embedding)
@@ -62,7 +65,10 @@ def LLM_chain(path, question):
         | StrOutputParser()
     )
 
-    #question = "Расскажи в общих чертах насыщенно какие правила приема в ЛЭТИ"
     response = chain.invoke(question)
     #print(response)
     return response
+
+if __name__ == "__main__":
+    abcde = LLM_chain('../docs/Промышленная электроника.json', 'Промышленная электроника.')
+    print(abcde)
