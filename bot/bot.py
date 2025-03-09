@@ -1,149 +1,122 @@
-
 from dotenv import load_dotenv
 from os import getenv
-from pathlib import Path
-import requests
 import shelve
-from telebot import TeleBot, types
+from telebot import TeleBot
 
 import text_information as text_info
+import messages
 
-# Load consts from .env
+# Загрузка констант из .env
 load_dotenv()
 bot_token = getenv('TG_BOT_TOKEN')
 
 bot = TeleBot(token=bot_token)
 
-# Connect to local storage
+# Подключение к локальному хранилищу
 storage = shelve.open('education')
 
+
+# Обработка команды /start
 @bot.message_handler(commands=['start'])
-def greeting(message):
-    chat_id = message.chat.id
-    bot.send_message(chat_id, 'Приветствуем тебя в ПИШ!')
+def start_handler(message):
+    messages.greeting_text(bot, message)
     start(message)
 
 
+# Первый выбор пользователя
 def start(message):
-    chat_id = message.chat.id
-    # Create reply keyboard
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(*['Узнать подробнее о ПИШ', 'Выбрать уровень образования'], row_width=2)
-    # Send message with keyboard
-    bot.send_message(
-        chat_id=chat_id,
-        text='Выбирай интересующие тебя темы, чтобы узнать о \"Передовой инженерной школе\" подробнее.',
-        reply_markup=keyboard
-    )
-    bot.register_next_step_handler(message, first_choice)
+    messages.start_text(bot, message)
+    bot.register_next_step_handler(message, first_choice_handler)
 
 
-def first_choice(message):
-    chat_id = message.chat.id
+def first_choice_handler(message):
     text = message.text
     if text == 'Узнать подробнее о ПИШ':
-        bot.send_message(chat_id, 'Здесь содержится развёрнутая информация о ПИШ.')
-        bot.register_next_step_handler(message, first_choice)
+        messages.about_aes_text(bot, message)
+        bot.register_next_step_handler(message, first_choice_handler)
     elif text == 'Выбрать уровень образования':
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(*text_info.education.keys(), text_info.to_start, row_width=2)
-        bot.send_message(
-            chat_id=chat_id,
-            text='Выбери уровень образования, на котором ты собираешься обучаться.',
-            reply_markup=keyboard
-        )
-        bot.register_next_step_handler(message, education_choice)
+        education_choice(message)
     else:
-        unknown_message(message, first_choice)
+        another_message(message, first_choice_handler)
 
 
+# Выбор уровня образования
 def education_choice(message):
-    chat_id = message.chat.id
+    messages.education_choice_text(bot, message)
+    bot.register_next_step_handler(message, education_choice_handler)
+
+
+def education_choice_handler(message):
     text = message.text
-    if text not in ['Бакалавриат', 'Магистратура']:
-        unknown_message(message, education_choice)
+    if text not in text_info.education.keys():
+        another_message(message, education_choice_handler)
     else:
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        # Make replies from specialization list
-        keyboard.add(*text_info.education[text], text_info.to_start, row_width=1)
-        bot.send_message(
-            chat_id=chat_id,
-            text='Выбери специальность, о которой хочешь узнать больше.',
-            reply_markup=keyboard
-        )
-        bot.register_next_step_handler(message, info)
+        specialization_choice(message)
 
 
-def info(message):
-    chat_id = message.chat.id
+# Выбор специальности
+def specialization_choice(message):
+    messages.specialization_choice_text(bot, message)
+    bot.register_next_step_handler(message, specialization_choice_handler)
+
+
+def specialization_choice_handler(message):
     text = message.text
     if text not in text_info.education['Бакалавриат'] + text_info.education['Магистратура']:
-        unknown_message(message, info)
+        another_message(message, specialization_choice_handler)
     else:
-        # Save specialization to local storage
+        chat_id = message.chat.id
+        # Сохранение специальности в локальное хранилище
         storage[str(chat_id)] = text
-        show_questions(message)
+        answer_questions(message)
 
 
-def show_questions(message):
-    chat_id = message.chat.id
-    # Make replies from question list
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(*text_info.questions, 'НЕТ НУЖНОГО ОТВЕТА', text_info.to_start, row_width=1)
-    bot.send_message(
-        chat_id=chat_id,
-        text='Выбери, что тебя интересует.',
-        reply_markup=keyboard
-    )
-    bot.register_next_step_handler(message, answer_question)
+# Выбор вопроса
+def answer_questions(message):
+    messages.questions_text(bot, message)
+    bot.register_next_step_handler(message, answer_question_handler)
 
 
-def answer_question(message):
-    chat_id = message.chat.id
+def answer_question_handler(message):
     text = message.text
     if text == 'НЕТ НУЖНОГО ОТВЕТА':
-        # Make replies from question recipients list
-        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        keyboard.add(*text_info.question_recipient, text_info.back, row_width=1)
-        bot.send_message(
-            chat_id=chat_id,
-            text='Выбери, кому ты хочешь задать вопрос.',
-            reply_markup=keyboard
-        )
-        bot.register_next_step_handler(message, recipient)
+        recipient(message)
     elif text not in text_info.questions:
-        unknown_message(message, answer_question)
+        another_message(message, answer_question_handler)
     else:
-        # Read specialization from local storage
+        chat_id = message.chat.id
+        # Считывание специальности из локального хранилища
         specialization = storage[str(chat_id)]
-        # Answer the question
+        # Ответ на вопрос
         bot.send_message(
             chat_id=chat_id, 
             text=f'Ответ на вопрос \"{text}\" по специальности {specialization}.'
         )
-        bot.register_next_step_handler(message, answer_question)
+        # Возврат к этому же обработчику
+        bot.register_next_step_handler(message, answer_question_handler)
 
 
+# Выбор получателя письма
 def recipient(message):
-    chat_id = message.chat.id
+    messages.recipients_text(bot, message)
+    bot.register_next_step_handler(message, recipient_handler)
+
+
+def recipient_handler(message):
     text = message.text
     if text == text_info.back:
-        show_questions(message)
+        answer_question_handler(message)
     elif text not in text_info.question_recipient:
-        unknown_message(message, recipient)
+        another_message(message, recipient)
     else:
-        # Add recipient to local storage
+        chat_id = message.chat.id
+        # Добавление получателя в локальное хранилище
         storage[str(chat_id) + '_mail'] = [text]
-        # Remove reply keyboard
-        remove_keyboard = types.ReplyKeyboardRemove()
-        bot.send_message(
-            chat_id=chat_id, 
-            text=f'Укажи свою фамилию и имя.',
-            reply_markup=remove_keyboard
-        )
+        messages.first_last_name_text(bot, message)
         bot.register_next_step_handler(message, first_last_name)
 
 
+# Обработка ввода имени и фамилии
 def first_last_name(message):
     chat_id = message.chat.id
     text = message.text
@@ -155,6 +128,7 @@ def first_last_name(message):
     bot.register_next_step_handler(message, email)
 
 
+# Обработка ввода почты
 def email(message):
     chat_id = message.chat.id
     text = message.text
@@ -166,6 +140,7 @@ def email(message):
     bot.register_next_step_handler(message, open_question)
 
 
+# Обработка ввода ответа
 def open_question(message):
     chat_id = message.chat.id
     text = message.text
@@ -174,7 +149,7 @@ def open_question(message):
     # Send mail
     bot.send_message(
         chat_id, 
-        f'to: {mail_info[0]}\nfrom: {mail_info[1]}\nemail: {mail_info[2]}\ntext:\n{text}'
+        f'**to:** {mail_info[0]}\n**from:** {mail_info[1]}\n**email:** {mail_info[2]}\n**text:** {text}'
     )
     del storage[str(chat_id) + '_mail']
     bot.send_message(chat_id, 'Твой вопрос успешно отправлен.\n'
@@ -183,18 +158,19 @@ def open_question(message):
     start(message)
 
 
-def unknown_message(message, next_step):
-    if message.text == text_info.to_start:
+def another_message(message, next_step_handler):
+    if message.text == '/start':
+        start_handler(message)
+    elif message.text == text_info.to_start:
         start(message)
     else:
         chat_id = message.chat.id
-        bot.send_message(chat_id, 'Я не знаю, что на это ответить. ' 
-                        'Выбери, пожалуйста, один вариант из предложенных.')
-        bot.register_next_step_handler(message, next_step)
+        bot.send_message(chat_id, 'Выбери, пожалуйста, один вариант из предложенных.')
+        bot.register_next_step_handler(message, next_step_handler)
 
 
 if __name__ == '__main__':
     bot.polling()
 
-# Close connection with local storage
+# Закрытие подключения к локальному хранилищу
 storage.close()
