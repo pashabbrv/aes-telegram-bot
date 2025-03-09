@@ -5,6 +5,7 @@ from telebot import TeleBot
 
 import text_information as text_info
 import messages
+import LLM_integration as LLM
 
 # Загрузка констант из .env
 load_dotenv()
@@ -68,32 +69,44 @@ def specialization_choice_handler(message):
         chat_id = message.chat.id
         # Сохранение специальности в локальное хранилище
         storage[str(chat_id)] = text
-        answer_questions(message)
+        questions(message)
 
 
 # Выбор вопроса
-def answer_questions(message):
+def questions(message):
     messages.questions_text(bot, message)
-    bot.register_next_step_handler(message, answer_question_handler)
+    bot.register_next_step_handler(message, questions_handler)
 
 
-def answer_question_handler(message):
+def questions_handler(message):
     text = message.text
     if text == 'НЕТ НУЖНОГО ОТВЕТА':
         recipient(message)
     elif text not in text_info.questions:
-        another_message(message, answer_question_handler)
+        another_message(message, questions_handler)
     else:
-        chat_id = message.chat.id
+        answer_question(message)
+
+
+# Ответ на вопрос
+def answer_question(message):
+    chat_id = message.chat.id
+    text = message.text
+    if text == 'Правила приёма':
+        path = '../docs/Правила приёма.pdf'
+    else:
         # Считывание специальности из локального хранилища
         specialization = storage[str(chat_id)]
-        # Ответ на вопрос
-        bot.send_message(
-            chat_id=chat_id, 
-            text=f'Ответ на вопрос \"{text}\" по специальности {specialization}.'
-        )
-        # Возврат к этому же обработчику
-        bot.register_next_step_handler(message, answer_question_handler)
+        path = f'../docs/{specialization}.json'
+    # Ответ на вопрос
+    response = LLM.LLM_chain(path, text)
+    bot.send_message(
+        chat_id=chat_id, 
+        text=f'Ответ на вопрос \"{text}\" по специальности {specialization}:\n{response}'
+    )
+    # Возврат к этому же обработчику
+    bot.register_next_step_handler(message, questions_handler)
+
 
 
 # Выбор получателя письма
@@ -105,7 +118,7 @@ def recipient(message):
 def recipient_handler(message):
     text = message.text
     if text == text_info.back:
-        answer_question_handler(message)
+        questions_handler(message)
     elif text not in text_info.question_recipient:
         another_message(message, recipient)
     else:
