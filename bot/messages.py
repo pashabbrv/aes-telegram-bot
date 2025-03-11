@@ -73,7 +73,7 @@ def questions_text(bot, chat_id, text):
 def recipients_text(bot, chat_id, text):
     # Создание вариантов из списка вопросов
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(*text_info.question_recipient, text_info.back, row_width=1)
+    keyboard.add(*text_info.question_recipient.keys(), text_info.back, row_width=1)
     bot.send_message(
         chat_id=chat_id,
         text='Выбери, кому ты хочешь задать вопрос.',

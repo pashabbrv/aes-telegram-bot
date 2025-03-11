@@ -1,3 +1,9 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+
 to_start = '[В начало]'
 back = '[Назад]'
 education = {
@@ -26,7 +32,7 @@ questions = [
     'Количество бюджетных мест',
     'Стоимость обучения'
 ]
-question_recipient = [
-    'Менеджер образовательной программы',
-    'Дирекция ПИШ'
-]
+question_recipient = {
+    'Менеджер образовательной программы': os.getenv('RECIPIENT_1'),
+    'Дирекция ПИШ': os.getenv('RECIPIENT_2')
+}

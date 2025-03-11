@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
 import os
-import time
 #import shelve
 from telebot import TeleBot
 
 import text_information as text_info
 import messages
 import LLM_integration as LLM
+import email_handler
 
 # Загрузка констант из .env
 load_dotenv()
@@ -112,7 +112,6 @@ def answer_question(message):
     bot.register_next_step_handler(message, questions_handler)
 
 
-
 # Выбор получателя письма
 def recipient(message):
     messages.recipients_text(bot, message)
@@ -123,12 +122,12 @@ def recipient_handler(message):
     text = message.text
     if text == text_info.back:
         questions_handler(message)
-    elif text not in text_info.question_recipient:
+    elif text not in text_info.question_recipient.keys():
         another_message(message, recipient)
     else:
         chat_id = message.chat.id
         # Добавление получателя в локальное хранилище
-        storage[str(chat_id) + '_mail'] = [text]
+        storage[str(chat_id) + '_mail'] = [text_info.question_recipient[text]]
         messages.first_last_name_text(bot, message)
         bot.register_next_step_handler(message, first_last_name)
 
@@ -137,7 +136,7 @@ def recipient_handler(message):
 def first_last_name(message):
     chat_id = message.chat.id
     text = message.text
-    # Add first name and last name to local storage
+    # Добавление имени и фамилии в локальное хранилище
     mail_info = storage[str(chat_id) + '_mail']
     mail_info.append(text)
     storage[str(chat_id) + '_mail'] = mail_info
@@ -163,15 +162,23 @@ def open_question(message):
     text = message.text
     # Получение информации из хранилища
     mail_info = storage[str(chat_id) + '_mail']
-    # Отправка письма
-    bot.send_message(
-        chat_id, 
+    # Информация об отправляемом письме
+    print(
         f'**to:** {mail_info[0]}\n**from:** {mail_info[1]}\n**email:** {mail_info[2]}\n**text:** {text}'
     )
-    del storage[str(chat_id) + '_mail']
-    bot.send_message(chat_id, 'Твой вопрос успешно отправлен.\n'
+    # Отправка письма
+    if email_handler.send_email(
+        mail_info[0], 
+        f'[{mail_info[2]}] Вопрос от {mail_info[1]}',
+        text
+    ):
+        bot.send_message(chat_id, 'Твой вопрос успешно отправлен.\n'
                     'Ответ скоро придет тебе на указанный адрес электронной почты.')
-    bot.send_message(chat_id, 'ЖДЕМ ТЕБЯ В ПИШ!')
+        bot.send_message(chat_id, 'ЖДЕМ ТЕБЯ В ПИШ!')
+    else:
+        bot.send_message(chat_id, 'При отправке письма произошла ошибка.')
+    # Удаление данных о пользователе из локального хранилища
+    del storage[str(chat_id) + '_mail']
     start(message)
 
 
