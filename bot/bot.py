@@ -8,7 +8,6 @@ from .bot_handlers.bot_states import *
 from .bot_handlers.main_menu import main_menu
 from .bot_handlers import bot_specialization
 from .text_information import *
-#import LLM_integration as LLM
 #import email_handler
 
 # Загрузка констант из .env
@@ -41,20 +40,19 @@ def start_command_handler(message):
     func=lambda msg: msg.text == 'Начать',
 )
 def start_handler(message):
-    bot.set_state(message.from_user.id, StartState.info, message.chat.id)
+    bot.set_state(message.from_user.id, MainMenuState.main, message.chat.id)
     photo_url = 'https://pish.etu.ru/assets/cache/images/bessonov-400x400-1f7.jpg'
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True).add('Узнать подробнее о ПИШ')
     bot.send_photo(
         chat_id=message.chat.id,
         photo=photo_url,
         caption='\"Хочешь стать инженером нового поколения, лучше и '
-        'перспективнее других? Выбирай Передовую инженерную школу ЛЭТИ!\"',
-        reply_markup=keyboard
+        'перспективнее других? Выбирай Передовую инженерную школу ЛЭТИ!\"'
     )
+    go_to_main_menu(message)
 
 
 @bot.message_handler(
-    state=StartState.info,
+    state=MainMenuState.main,
     func=lambda msg: msg.text == 'Узнать подробнее о ПИШ',
 )
 def start_handler(message):
