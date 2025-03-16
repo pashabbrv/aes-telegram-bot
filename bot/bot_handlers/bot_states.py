@@ -14,3 +14,8 @@ class SpecializationState(StatesGroup):
     main_choice = State()
     specialization = State()
     question = State()
+
+
+class QuestionState(StatesGroup):
+    ask_question = State()
+    wait_answer = State()

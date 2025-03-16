@@ -1,9 +1,8 @@
 from telebot import TeleBot, types
 
+from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, SpecializationState
-from .main_menu import main_menu
 from ..text_information import *
-import LLM.LLM_integration as LLM
 
 def register_commands(bot: TeleBot):
     '''Регистрация последовательности действий для специальностей'''
@@ -123,10 +122,8 @@ def register_commands(bot: TeleBot):
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
             education_level = data['education_level']
             specialization = data['education']
-
-        # Ответ на вопрос
-        response = LLM.LLM_chain(f'{education_level}. {specialization}. {text}')
+        
         bot.send_message(
             chat_id=chat_id, 
-            text=f'Ответ на вопрос \"{text}\" по специальности {specialization}:\n\n{response}'
+            text=f'Ответ на вопрос \"{text}\" по специальности \"{education_level}. {specialization}\".'
         )

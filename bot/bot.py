@@ -5,8 +5,8 @@ from telebot.storage import StateMemoryStorage
 from telebot.util import content_type_media
 
 from .bot_handlers.bot_states import *
-from .bot_handlers.main_menu import main_menu
-from .bot_handlers import bot_specialization
+from .bot_handlers.bot_main_menu import main_menu
+from .bot_handlers import bot_specialization, bot_question
 from .text_information import *
 #import email_handler
 
@@ -66,6 +66,7 @@ def start_handler(message):
 
 
 bot_specialization.register_commands(bot)
+bot_question.register_commands(bot)
 
 
 @bot.message_handler(
