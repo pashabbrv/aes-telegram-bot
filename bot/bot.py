@@ -1,21 +1,29 @@
 from dotenv import load_dotenv
 import os
 from telebot import TeleBot, types, custom_filters
-from telebot.storage import StateMemoryStorage
+from telebot.storage import StateMemoryStorage, StateRedisStorage
 from telebot.util import content_type_media
 
 from .bot_handlers.bot_states import *
 from .bot_handlers.bot_main_menu import main_menu
 from .bot_handlers import bot_specialization, bot_question
 from .text_information import *
-#import email_handler
+
 
 # Загрузка констант из .env
 load_dotenv()
 bot_token = os.getenv('TG_BOT_TOKEN')
+redis_host = os.getenv('REDIS_HOST')
+redis_port = os.getenv('REDIS_PORT')
+redis_password = os.getenv('REDIS_PASSWORD')
 
 # Создание бота и хранилища
-state_storage = StateMemoryStorage()
+#state_storage = StateMemoryStorage()
+state_storage = StateRedisStorage(
+    host=redis_host,
+    port=redis_port,
+    password=redis_password,
+)
 bot = TeleBot(token=bot_token, state_storage=state_storage)
 bot.add_custom_filter(custom_filters.StateFilter(bot))
 
