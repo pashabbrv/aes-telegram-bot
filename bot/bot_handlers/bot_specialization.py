@@ -2,8 +2,8 @@ from telebot import TeleBot, types
 
 from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, SpecializationState
-from ..text_information import *
 from ..managers import managers
+from ..text_information import *
 
 def register_commands(bot: TeleBot):
     '''Регистрация последовательности действий для специальностей'''
@@ -108,7 +108,7 @@ def register_commands(bot: TeleBot):
     def question_handler(message):
         if message.text == BACK:
             specialization(message)
-        if message.text == 'Задать вопрос менеджеру':
+        elif message.text == 'Задать вопрос менеджеру':
             ask_manager(message)
         else:
             answer_question(message)
@@ -141,14 +141,20 @@ def register_commands(bot: TeleBot):
         if message.text != CANCEL:
             with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
                 specialization = data['education']
-            bot.send_message(
-                chat_id=managers[specialization], 
-                text=f'Вопрос от пользователя {message.chat.id}:\n\n{message.text}',
-            )
-            bot.send_message(
-                chat_id=message.chat.id, 
-                text='Твой вопрос успешно отправлен. Вскоре наш менеджер даст на него ответ.',
-            )
+            try:
+                bot.send_message(
+                    chat_id=managers[specialization], 
+                    text=f'Вопрос от пользователя {message.chat.id}:\n\n{message.text}',
+                )
+                bot.send_message(
+                    chat_id=message.chat.id, 
+                    text='Твой вопрос успешно отправлен. Вскоре наш менеджер даст на него ответ.',
+                )
+            except Exception:
+                bot.send_message(
+                    chat_id=message.chat.id, 
+                    text='К сожалению, вопрос отправить не удалось.',
+                )
         questions(message)
 
 
@@ -161,7 +167,12 @@ def register_commands(bot: TeleBot):
             education_level = data['education_level']
             specialization = data['education']
         
+        answer = QUESTIONS[text][education_level]
+        if text == 'Описание':
+            answer = answer[specialization]
+
         bot.send_message(
             chat_id=chat_id, 
-            text=f'Ответ на вопрос \"{text}\" по специальности \"{education_level}. {specialization}\".'
+            text=answer,
+            parse_mode='Markdown'
         )

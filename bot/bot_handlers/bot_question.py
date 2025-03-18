@@ -4,7 +4,7 @@ from time import sleep
 
 from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, QuestionState
-from ..text_information import *
+from ..text_information import START
 
 def register_commands(bot: TeleBot):
     '''Ответ пользователю на вопрос от нейросети'''

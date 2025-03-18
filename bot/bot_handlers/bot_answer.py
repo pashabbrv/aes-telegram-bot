@@ -1,11 +1,10 @@
 from telebot import TeleBot, types
 from telebot.util import content_type_media
-from time import sleep
 
 from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, AnswerState
 from ..managers import managers
-from ..text_information import *
+from ..text_information import CANCEL
 
 
 def register_commands(bot: TeleBot):

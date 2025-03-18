@@ -7,7 +7,7 @@ from telebot.util import content_type_media
 from .bot_handlers.bot_states import *
 from .bot_handlers.bot_main_menu import main_menu
 from .bot_handlers import bot_specialization, bot_question, bot_answer
-from .text_information import *
+from .text_information import START, ABOUT_AES
 
 
 # Загрузка констант из .env
@@ -66,9 +66,8 @@ def start_handler(message):
 def start_handler(message):
     bot.send_message(
         chat_id=message.chat.id,
-        text='- [Кратко о том, чем ПИШ отличается от классических образовательных программ.]\n'
-        '- Возможности участия в реальных промышленных проектах.\n'
-        '- Партнёрства с компаниями, современные лаборатории, перспектива трудоустройства.\n'
+        text=ABOUT_AES,
+        parse_mode='Markdown'
     )
     main_menu(bot, message)
 
