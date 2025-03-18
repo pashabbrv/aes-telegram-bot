@@ -6,7 +6,7 @@ from telebot.util import content_type_media
 
 from .bot_handlers.bot_states import *
 from .bot_handlers.bot_main_menu import main_menu
-from .bot_handlers import bot_specialization, bot_question
+from .bot_handlers import bot_specialization, bot_question, bot_answer
 from .text_information import *
 
 
@@ -14,7 +14,7 @@ from .text_information import *
 load_dotenv()
 bot_token = os.getenv('TG_BOT_TOKEN')
 redis_host = os.getenv('REDIS_HOST')
-redis_port = os.getenv('REDIS_PORT')
+redis_port = int(os.getenv('REDIS_PORT'))
 redis_password = os.getenv('REDIS_PASSWORD')
 
 # Создание бота и хранилища
@@ -75,6 +75,7 @@ def start_handler(message):
 
 bot_specialization.register_commands(bot)
 bot_question.register_commands(bot)
+bot_answer.register_commands(bot)
 
 
 @bot.message_handler(
