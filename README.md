@@ -5,7 +5,6 @@ Telegram bot for ETU advanced engineering school.
 ```
       docker-compose build
 ```
-### Run 
 ```
       docker-compose up
 ```
