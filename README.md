@@ -1,8 +1,11 @@
 # AesTelegramBot
 Telegram bot for ETU advanced engineering school.
 
-Build container
+### Build container
+```
       docker-compose build
-
-Run 
+```
+### Run 
+```
       docker-compose up
+```
