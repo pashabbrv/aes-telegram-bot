@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  aes-telegram-bot:
+    build: .
+    env_file: .env
+    restart: unless-stopped
+    volumes:
+      - ./embeddings_cache.pkl:/app/embeddings_cache.pkl
+    stdin_open: true
+    tty: true
