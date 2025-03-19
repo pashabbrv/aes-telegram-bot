@@ -78,6 +78,10 @@ def load_pdfs_from_s3(bucket_name):
 def get_cached_embeddings(texts):
     """Загрузить закэшированные эмбеддинги, если они есть."""
     embeddings_cache = "embeddings_cache.pkl"
+    # проверка на тип файла
+    if os.path.exists(embeddings_cache) and os.path.isdir(embeddings_cache):
+        raise Exception("Embeddings cache is directory! Delete it and restart.")
+    
     if os.path.exists(embeddings_cache):
         with open(embeddings_cache, "rb") as f:
             cache = pickle.load(f)

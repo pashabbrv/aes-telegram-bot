@@ -1,0 +1,9 @@
+telebot
+python-dotenv
+langchain-community
+boto3
+qdrant-client
+langchain-core
+pypdf
+redis
+langchain-text-splitters
