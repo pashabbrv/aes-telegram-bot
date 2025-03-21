@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
 import os
 from telebot import TeleBot, types, custom_filters
-from telebot.storage import StateMemoryStorage, StateRedisStorage
+from telebot.storage import StateRedisStorage
 from telebot.util import content_type_media
 
 from .bot_handlers.bot_states import *
 from .bot_handlers.bot_main_menu import main_menu
-from .bot_handlers import bot_specialization, bot_question, bot_answer
+from .bot_handlers import bot_specialization, bot_question, bot_answer, bot_feedback
 from .text_information import START, ABOUT_AES
 
 
@@ -18,7 +18,6 @@ redis_port = int(os.getenv('REDIS_PORT'))
 redis_password = os.getenv('REDIS_PASSWORD')
 
 # Создание бота и хранилища
-#state_storage = StateMemoryStorage()
 state_storage = StateRedisStorage(
     host=redis_host,
     port=redis_port,
@@ -75,6 +74,7 @@ def start_handler(message):
 
 bot_specialization.register_commands(bot)
 bot_question.register_commands(bot)
+bot_feedback.register_commands(bot)
 bot_answer.register_commands(bot)
 
 
