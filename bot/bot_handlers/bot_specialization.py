@@ -138,9 +138,14 @@ def register_commands(bot: TeleBot):
         func=lambda msg: msg.text != START,
     )
     def ask_manager_handler(message):
-        if message.text != CANCEL:
-            with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-                specialization = data['education']
+        with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            specialization = data['education']
+        if managers[specialization] == 0 and message.text != CANCEL:
+            bot.send_message(
+                chat_id=message.chat.id, 
+                text='К сожалению, вопрос отправить не удалось. Менеджер не назначен.',
+            )
+        elif message.text != CANCEL:
             try:
                 bot.send_message(
                     chat_id=managers[specialization], 

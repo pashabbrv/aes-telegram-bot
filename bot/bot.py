@@ -49,12 +49,14 @@ def start_command_handler(message):
 )
 def start_handler(message):
     bot.set_state(message.from_user.id, MainMenuState.main, message.chat.id)
-    photo_url = 'https://pish.etu.ru/assets/cache/images/bessonov-400x400-1f7.jpg'
+    director_photo = types.InputFile('bot/img/director.jpg')
     bot.send_photo(
         chat_id=message.chat.id,
-        photo=photo_url,
+        photo=director_photo,
         caption='\"Хочешь стать инженером нового поколения, лучше и '
-        'перспективнее других? Выбирай Передовую инженерную школу ЛЭТИ!\"'
+        'перспективнее других? Выбирай Передовую инженерную школу ЛЭТИ!\"\n'
+        'Бессонов Виктор Борисович, директор передовой инженерной школы '
+        '«Электроника и электротехника» СПбГЭТУ «ЛЭТИ»'
     )
     go_to_main_menu(message)
 
