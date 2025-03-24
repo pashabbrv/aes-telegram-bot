@@ -1,12 +1,12 @@
 from dotenv import load_dotenv
 import os
 from telebot import TeleBot, types, custom_filters
-from telebot.storage import StateMemoryStorage, StateRedisStorage
+from telebot.storage import StateRedisStorage
 from telebot.util import content_type_media
 
 from .bot_handlers.bot_states import *
 from .bot_handlers.bot_main_menu import main_menu
-from .bot_handlers import bot_specialization, bot_question, bot_answer
+from .bot_handlers import bot_specialization, bot_question, bot_answer, bot_feedback
 from .text_information import START, ABOUT_AES
 
 
@@ -18,7 +18,6 @@ redis_port = int(os.getenv('REDIS_PORT'))
 redis_password = os.getenv('REDIS_PASSWORD')
 
 # Создание бота и хранилища
-#state_storage = StateMemoryStorage()
 state_storage = StateRedisStorage(
     host=redis_host,
     port=redis_port,
@@ -49,12 +48,14 @@ def start_command_handler(message):
 )
 def start_handler(message):
     bot.set_state(message.from_user.id, MainMenuState.main, message.chat.id)
-    photo_url = 'https://pish.etu.ru/assets/cache/images/bessonov-400x400-1f7.jpg'
+    director_photo = types.InputFile('bot/img/director.jpg')
     bot.send_photo(
         chat_id=message.chat.id,
-        photo=photo_url,
+        photo=director_photo,
         caption='\"Хочешь стать инженером нового поколения, лучше и '
-        'перспективнее других? Выбирай Передовую инженерную школу ЛЭТИ!\"'
+        'перспективнее других? Выбирай Передовую инженерную школу ЛЭТИ!\"\n'
+        'Бессонов Виктор Борисович, директор передовой инженерной школы '
+        '«Электроника и электротехника» СПбГЭТУ «ЛЭТИ»'
     )
     go_to_main_menu(message)
 
@@ -73,6 +74,7 @@ def start_handler(message):
 
 bot_specialization.register_commands(bot)
 bot_question.register_commands(bot)
+bot_feedback.register_commands(bot)
 bot_answer.register_commands(bot)
 
 

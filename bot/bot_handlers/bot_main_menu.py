@@ -9,13 +9,13 @@ def main_menu(bot: TeleBot, message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True).add(
         'Узнать подробнее о ПИШ', 
         'Выбрать уровень образования',
+        'Задать вопрос боту',
+        'Оставить отзыв о боте',
         row_width=2
     )
-    second_row = ['Задать вопрос боту']
     # Для менеджеров добавляем кнопку для ответа на вопрос
     if message.from_user.id in managers.values():
-        second_row.append('Ответить на вопрос')
-    keyboard.add(*second_row, row_width=2)
+        keyboard.add('Ответить на вопрос', row_width=2)
     bot.send_message(
         chat_id=message.chat.id,
         text='Выбери интересующий тебя раздел.',

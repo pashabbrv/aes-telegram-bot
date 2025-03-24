@@ -22,6 +22,10 @@ class QuestionState(StatesGroup):
     wait_answer = State()
 
 
+class FeedbackState(StatesGroup):
+    main = State()
+
+
 class AnswerState(StatesGroup):
     enter_id = State()
     enter_answer = State()
