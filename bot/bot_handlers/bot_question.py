@@ -55,7 +55,7 @@ def register_commands(bot: TeleBot):
             return
         
         # Открытие хранилища для проверки оставшегося количества запросов
-        with bot.retrieve_data(message.from_user.id, chat_id) as data:
+        """  with bot.retrieve_data(message.from_user.id, chat_id) as data:
             n = data['questions_n']
             # Если количество запросов исчерпано, то выводим сообщение
             if n == 0:
@@ -64,7 +64,8 @@ def register_commands(bot: TeleBot):
                     text=f'Прости, но твой лимит по вопросам исчерпан.'
                 )
                 return
-            data['questions_n'] = n - 1
+            data['questions_n'] = n - 1 
+        """
         
         # Состояние ожидания ответа
         bot.set_state(message.from_user.id, QuestionState.wait_answer, message.chat.id)
