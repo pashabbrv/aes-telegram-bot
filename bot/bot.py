@@ -15,13 +15,11 @@ load_dotenv()
 bot_token = os.getenv('TG_BOT_KEY')
 redis_host = os.getenv('REDIS_HOST')
 redis_port = int(os.getenv('REDIS_PORT'))
-redis_password = os.getenv('REDIS_PASSWORD')
 
 # Создание бота и хранилища
 state_storage = StateRedisStorage(
     host=redis_host,
     port=redis_port,
-    password=redis_password,
 )
 bot = TeleBot(token=bot_token, state_storage=state_storage)
 bot.add_custom_filter(custom_filters.StateFilter(bot))
