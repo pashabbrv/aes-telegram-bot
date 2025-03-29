@@ -1,6 +1,7 @@
 from telebot import TeleBot, types
 from telebot.util import content_type_media
-from time import sleep
+import datetime
+#from time import sleep
 
 from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, QuestionState
@@ -24,13 +25,21 @@ def register_commands(bot: TeleBot):
         bot.set_state(message.from_user.id, QuestionState.ask_question, message.chat.id)
         # Получение количества оставшихся запросов пользователя
         with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+            today_date = datetime.date.today()
             try:
                 n = data['questions_n']
+                last = datetime.datetime.strptime(data['last_question'], '%d-%m-%Y').date()
+                # Обновление количества запросов с новым днём
+                if today_date >= last:
+                    n = 5
+                    data['questions_n'] = n
+                    data['last_question'] = today_date.strftime('%d-%m-%Y')
             except Exception as e:
                 # Если пользователь ни разу не задавал вопрос, то даём ему количество запросов
                 n = 5
                 data['questions_n'] = n
-        
+                data['last_question'] = today_date.strftime('%d-%m-%Y')
+            
         keyboard = types.ReplyKeyboardMarkup(
             resize_keyboard=True
         ).add(START, row_width=2)
@@ -38,7 +47,7 @@ def register_commands(bot: TeleBot):
             chat_id=message.chat.id,
             text='Задай интересующий тебя вопрос и наша нейросеть даст на него ответ '
             '(во время ожидания ответа тебе нельзя будет перемещаться между разделами).'
-            f'\nОставшееся количество запросов: {n}',
+            f'\nОставшееся количество запросов на сегодня: {n}',
             reply_markup=keyboard
         )
     
@@ -61,7 +70,7 @@ def register_commands(bot: TeleBot):
             if n == 0:
                 bot.send_message(
                     chat_id=chat_id, 
-                    text=f'Прости, но твой лимит по вопросам исчерпан.'
+                    text=f'Прости, но на сегодня твой лимит по вопросам исчерпан.'
                 )
                 return
             data['questions_n'] = n - 1
@@ -71,8 +80,6 @@ def register_commands(bot: TeleBot):
         # Генерирование ответа на вопрос
         ask_question_handler(message)
         response = LLM.LLM_chain(text)
-        #sleep(5)
-        #response = 'Ожидание 5 секунд'
         # Отправка ответа пользователю
         bot.send_message(
             chat_id=chat_id, 
