@@ -30,7 +30,7 @@ def register_commands(bot: TeleBot):
                 n = data['questions_n']
                 last = datetime.datetime.strptime(data['last_question'], '%d-%m-%Y').date()
                 # Обновление количества запросов с новым днём
-                if today_date >= last:
+                if today_date > last:
                     n = 5
                     data['questions_n'] = n
                     data['last_question'] = today_date.strftime('%d-%m-%Y')
