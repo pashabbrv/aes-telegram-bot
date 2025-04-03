@@ -142,7 +142,7 @@ def LLM_chain(question):
 
 if __name__ == "__main__":
     # Тестовые вопросы
-    questions = ["война на украине"]
+    questions = ["Как поступить в ПИШ"]
     for question in questions:
         print(f"\nВопрос: {question}")
         answer = LLM_chain(question)
