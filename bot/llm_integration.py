@@ -5,8 +5,12 @@ from yandex_cloud_ml_sdk import YCloudML
 from langchain_community.embeddings.yandex import YandexGPTEmbeddings
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct
+from llm_judge import llm_censor, llm_validator
 from dotenv import load_dotenv
 
 # Загрузка переменных окружения
@@ -28,8 +32,8 @@ sdk = YCloudML(
     )
 llama_model = sdk.models.completions("llama").configure(
     temperature=0.5,
-    max_tokens=500
-)
+    max_tokens=500,
+).langchain(model_type="chat")
 
 # Конфигурация S3 (Yandex Bucket)
 aws_access_key_id = os.getenv("AWS_ACCESS_KEY")
@@ -108,6 +112,9 @@ def LLM_chain(question):
     """Основная функция для обработки запроса и возвращения ответа."""
     load_or_create_qdrant(bucket_name)
     info = "\n\nЕсли не нашли ответ на свой вопрос, воспользуйтесь сайтом: https://pish.etu.ru/. Или задайте вопрос менеджеру программы."
+
+    if llm_censor(question) == "Да":
+        return "Я не могу отвечать на такие вопросы, извини." + info
     
     query_vector = embeddings.embed_documents([question])[0]
     
@@ -121,20 +128,43 @@ def LLM_chain(question):
         context = "\n".join([clean_text(result.payload["text"]) for result in search_result])
         #print(f"Контекст для запроса: {context[:300]}...")
 
-        prompt = """Ты ассистент по вопросам, связанным с ПИШ(передовой инженерной школой) ЛЭТИ. Отвечай в контексте ПИШ ЛЭТИ.
-        Не отвечай на вопросы про политику, противозаконные действия, порнографию, войну и другие провокационные вещи.
+        template = """Ты ассистент по вопросам, связанным с ПИШ(передовой инженерной школой) ЛЭТИ. Отвечай в контексте ПИШ ЛЭТИ.
+        ПИШ имеет бакалавриат, магистратуру, дополнительное образование и является проектом ЛЭТИ.
         Используй предоставленный контекст для ответа. Не упоминай контекст в ответе. Дай ответ максимум в 450 токенов.
         Контекст: {context}
         Вопрос: {question}
         """
-        prompt = prompt.format(context=context, question=question)
-        #print(template)
+        
+        prompt = ChatPromptTemplate.from_template(template)
+        chain = (
+            {"context": RunnablePassthrough(), "question": RunnablePassthrough()}
+            | prompt
+            | llama_model
+            | StrOutputParser()
+        )
+        
+        response = chain.invoke({"context": context, "question": question})
 
-        result = llama_model.run(prompt)
-        response = result.alternatives[0].text
+        validation = llm_validator(question, response)
+        print(validation)
 
-        if response == "В интернете есть много сайтов с информацией на эту тему. [Посмотрите, что нашлось в поиске](https://ya.ru)":
-            return "Не могу ответить на данный вопрос. Скорее всего он не связан с ПИШ ЛЭТИ." + info
+        if validation == "Да":
+            template = """Ты ассистент по вопросам, связанным с ПИШ(передовой инженерной школой) ЛЭТИ.
+            ПИШ имеет бакалавриат, магистратуру, дополнительное образование и является проектом ЛЭТИ.
+            Отвечай используя обычную логику, свою базу знаний и знания о процессе обучения в ВУЗах.
+            Можешь общаться с пользователем, но не давай ему информацию о чем-то не связанном с ПИШ ЛЭТИ.
+            Вопрос: {question}
+            """
+            
+            prompt = ChatPromptTemplate.from_template(template)
+            chain = (
+                {"context": RunnablePassthrough(), "question": RunnablePassthrough()}
+                | prompt
+                | llama_model
+                | StrOutputParser()
+            )
+            response = chain.invoke({"context": context, "question": question})
+            
     else:
         return "Не получилось ничего найти по данному запросу." + info
     
@@ -142,7 +172,7 @@ def LLM_chain(question):
 
 if __name__ == "__main__":
     # Тестовые вопросы
-    questions = ["Как поступить в ПИШ"]
+    questions = ["как заселиться в общежитие"]
     for question in questions:
         print(f"\nВопрос: {question}")
         answer = LLM_chain(question)
