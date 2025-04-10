@@ -9,3 +9,4 @@ redis
 langchain-text-splitters
 yandexcloud
 yandex-cloud-ml-sdk
+
