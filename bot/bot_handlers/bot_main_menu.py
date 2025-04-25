@@ -15,7 +15,11 @@ def main_menu(bot: TeleBot, message):
     )
     # Для менеджеров добавляем кнопку для ответа на вопрос
     if message.from_user.id in managers.values():
-        keyboard.add('Ответить на вопрос', row_width=2)
+        keyboard.add(
+            'Ответить на вопрос',
+            'Статистика',
+            row_width=2
+        )
     bot.send_message(
         chat_id=message.chat.id,
         text='Выбери интересующий тебя раздел.',
