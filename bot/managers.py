@@ -24,4 +24,7 @@ magistracy = [
 managers_bachelor = dict(zip(bachelor, managers_bachelor_list))
 managers_magistracy = dict(zip(magistracy, managers_magistracy_list))
 
+# Менеджеры програм
 managers = {**managers_bachelor, **managers_magistracy}
+# Дирекция
+management = list(map(int, os.getenv('MANAGEMENT').split(',')))

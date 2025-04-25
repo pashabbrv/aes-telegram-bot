@@ -3,7 +3,7 @@ import redis
 import os
 
 from .bot_states import MainMenuState
-from ..managers import managers
+from ..managers import managers, management
 
 # Подключение к redis
 redis_host = os.getenv('REDIS_HOST')
@@ -20,7 +20,7 @@ def register_commands(bot: TeleBot):
     # Обработчки, вызываемый при нажатии "Ответить на вопрос"
     @bot.message_handler(
         state=MainMenuState.main,
-        func=lambda msg: msg.text == 'Статистика' and msg.from_user.id in managers.values(),
+        func=lambda msg: msg.text == 'Статистика' and msg.from_user.id in management,
     )
     def main_handler(message):
         managers_count = 0
