@@ -95,4 +95,4 @@ def unknown_message_handler(message):
 
 
 if __name__ == '__main__':
-    bot.infinite_polling(skip_pending=True)
+    bot.infinity_polling(skip_pending=True, timeout=100)
