@@ -10,8 +10,9 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct
-from llm_judge import llm_censor, llm_validator
 from dotenv import load_dotenv
+
+from .llm_judge import llm_censor, llm_validator
 
 # Загрузка переменных окружения
 load_dotenv()
