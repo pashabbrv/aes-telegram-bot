@@ -21,12 +21,12 @@ def llm_censor(question):
     best_label = max(result, key=lambda x: x.confidence)
     return best_label.label
  
-def llm_validator(question, response):
+def llm_validator(response):
     model = sdk.models.text_classifiers("yandexgpt").configure(
-        task_description="LLM отправила пользователя в интернет",
+        task_description="В ответе LLM имеется ya.ru",
         labels=["Нет", "Да"]
     )
 
-    result = model.run(f"Вопрос пользователя: {question}. Ответ от LLM: {response}")
+    result = model.run(f"Ответ от LLM: {response}")
     best_label = max(result, key=lambda x: x.confidence)
     return best_label.label

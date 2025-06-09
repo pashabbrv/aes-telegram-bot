@@ -131,6 +131,7 @@ def LLM_chain(question):
         template = """Ты ассистент по вопросам, связанным с ПИШ(передовой инженерной школой) ЛЭТИ. Отвечай в контексте ПИШ ЛЭТИ.
         ПИШ имеет бакалавриат, магистратуру, дополнительное образование и является проектом ЛЭТИ.
         Используй предоставленный контекст для ответа. Не упоминай контекст в ответе. Дай ответ максимум в 450 токенов.
+        ВАЖНО! Всегда давай развернутый ответ на вопросы абитуриента.
         Контекст: {context}
         Вопрос: {question}
         """
@@ -145,14 +146,23 @@ def LLM_chain(question):
         
         response = chain.invoke({"context": context, "question": question})
 
-        validation = llm_validator(question, response)
+        validation = llm_validator(response)
         print(validation)
 
         if validation == "Да":
+            search_result = qdrant_client.query_points(
+                collection_name=collection_name,
+                query=query_vector,
+                limit=1
+            ).points
+            context = "\n".join([clean_text(result.payload["text"]) for result in search_result])
+
             template = """Ты ассистент по вопросам, связанным с ПИШ(передовой инженерной школой) ЛЭТИ.
             ПИШ имеет бакалавриат, магистратуру, дополнительное образование и является проектом ЛЭТИ.
             Отвечай используя обычную логику, свою базу знаний и знания о процессе обучения в ВУЗах.
             Можешь общаться с пользователем, но не давай ему информацию о чем-то не связанном с ПИШ ЛЭТИ.
+            ВАЖНО! Всегда давай развернутый ответ на вопросы абитуриента.
+            Контекст: {context}
             Вопрос: {question}
             """
             
@@ -172,7 +182,7 @@ def LLM_chain(question):
 
 if __name__ == "__main__":
     # Тестовые вопросы
-    questions = ["как заселиться в общежитие"]
+    questions = ["как поступить на военную кафедру"]
     for question in questions:
         print(f"\nВопрос: {question}")
         answer = LLM_chain(question)
