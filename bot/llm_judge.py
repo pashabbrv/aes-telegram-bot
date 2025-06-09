@@ -27,6 +27,6 @@ def llm_validator(response):
         labels=["Нет", "Да"]
     )
 
-    result = model.run(f"Ответ от LLM: {response}")
+    result = model.run(response)
     best_label = max(result, key=lambda x: x.confidence)
     return best_label.label
