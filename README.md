@@ -1,4 +1,4 @@
-# AesTelegramBot
+# aes-telegram-bot
 Telegram bot for ETU advanced engineering school.
 
 ### Build container
