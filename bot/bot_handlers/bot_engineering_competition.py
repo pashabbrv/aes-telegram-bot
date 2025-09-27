@@ -1,16 +1,12 @@
 from telebot import TeleBot, types
-from dotenv import load_dotenv
-import os
 
 from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, EngineeringCompetitionState
-from ..managers import managers
+from ..managers import competition_manager
 from ..text_information import *
 
 def register_commands(bot: TeleBot):
     '''Регистрация последовательности действий для инженерного конкурса'''
-    load_dotenv()
-    competition_manager = int(os.getenv('COMPETITION_MANAGER'))
 
     # Обработчки, вызываемый при нажатии "Инженерный конкурс"
     @bot.message_handler(
@@ -202,7 +198,7 @@ def register_commands(bot: TeleBot):
                 )
                 bot.send_message(
                     chat_id=message.chat.id, 
-                    text='Твой вопрос успешно отправлен. Вскоре наш менеджер даст на него ответ.',
+                    text='Твой вопрос успешно отправлен. Вскоре куратор конкурса даст на него ответ.',
                 )
             except Exception:
                 bot.send_message(

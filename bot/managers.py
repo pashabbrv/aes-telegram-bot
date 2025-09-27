@@ -5,6 +5,8 @@ load_dotenv()
 managers_bachelor_list = list(map(int, os.getenv('MANAGERS_BACHELOR').split(',')))
 managers_magistracy_list = list(map(int, os.getenv('MANAGERS_MAGISTRACY').split(',')))
 
+competition_manager = int(os.getenv('COMPETITION_MANAGER'))
+
 bachelor = [
     'Промышленная электроника',
 ]
