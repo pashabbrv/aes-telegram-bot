@@ -1,4 +1,6 @@
 from telebot import TeleBot, types
+from dotenv import load_dotenv
+import os
 
 from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, EngineeringCompetitionState
@@ -7,6 +9,8 @@ from ..text_information import *
 
 def register_commands(bot: TeleBot):
     '''Регистрация последовательности действий для инженерного конкурса'''
+    load_dotenv()
+    competition_manager = int(os.getenv('COMPETITION_MANAGER'))
 
     # Обработчки, вызываемый при нажатии "Инженерный конкурс"
     @bot.message_handler(
@@ -171,7 +175,38 @@ def register_commands(bot: TeleBot):
         func=lambda msg: msg.text == 'Задать вопрос о конкурсе'
     )
     def ask_question_handler(message):
+        ask_question_message(message)
+    
+
+    def ask_question_message(message):
+        bot.set_state(message.from_user.id, EngineeringCompetitionState.ask_question, message.chat.id)
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True).add(START)
         bot.send_message(
-            chat_id=message.chat.id,
-            text='К соажлению, данный раздел пока не доступен.'
+            chat_id=message.chat.id, 
+            text=f'Есть вопрос? Напиши нам!',
+            reply_markup=keyboard
         )
+    
+
+    @bot.message_handler(
+        state=EngineeringCompetitionState.ask_question
+    )
+    def ask_manager_handler(message):
+        if message.text == START:
+            main_menu(bot, message)
+        else:
+            try:
+                bot.send_message(
+                    chat_id=competition_manager, 
+                    text=f'Вопрос от пользователя {message.chat.id}:\n\n{message.text}',
+                )
+                bot.send_message(
+                    chat_id=message.chat.id, 
+                    text='Твой вопрос успешно отправлен. Вскоре наш менеджер даст на него ответ.',
+                )
+            except Exception:
+                bot.send_message(
+                    chat_id=message.chat.id, 
+                    text='К сожалению, вопрос отправить не удалось.',
+                )
+            ask_question_message(message)

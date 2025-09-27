@@ -36,3 +36,4 @@ class EngineeringCompetitionState(StatesGroup):
     details_and_rules = State()
     all_directions = State()
     direction = State()
+    ask_question = State()
