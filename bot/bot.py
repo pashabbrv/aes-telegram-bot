@@ -6,7 +6,9 @@ from telebot.util import content_type_media
 
 from .bot_handlers.bot_states import *
 from .bot_handlers.bot_main_menu import main_menu
-from .bot_handlers import bot_specialization, bot_answer, bot_feedback, bot_statistic, bot_question
+from .bot_handlers import (
+    bot_specialization, bot_answer, bot_feedback, bot_statistic, bot_question, bot_engineering_competition
+)
 from .text_information import START, ABOUT_AES
 
 
@@ -75,6 +77,7 @@ bot_question.register_commands(bot)
 bot_feedback.register_commands(bot)
 bot_answer.register_commands(bot)
 bot_statistic.register_commands(bot)
+bot_engineering_competition.register_commands(bot)
 
 
 @bot.message_handler(
