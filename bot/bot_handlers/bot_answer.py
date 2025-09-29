@@ -3,7 +3,7 @@ from telebot.util import content_type_media
 
 from .bot_main_menu import main_menu
 from .bot_states import MainMenuState, AnswerState
-from ..managers import managers
+from ..managers import managers, competition_manager
 from ..text_information import CANCEL
 
 
@@ -13,7 +13,7 @@ def register_commands(bot: TeleBot):
     # Обработчки, вызываемый при нажатии "Ответить на вопрос"
     @bot.message_handler(
         state=MainMenuState.main,
-        func=lambda msg: msg.text == 'Ответить на вопрос' and msg.from_user.id in managers.values(),
+        func=lambda msg: msg.text == 'Ответить на вопрос' and (msg.from_user.id in managers.values() or msg.from_user.id == competition_manager),
     )
     def main_handler(message):
         ask_id(message)
@@ -66,10 +66,16 @@ def register_commands(bot: TeleBot):
             chat_id = data['answer_id']
         try:
             # Ответ пользователю
-            bot.send_message(
-                chat_id=chat_id,
-                text=f'Ответ от менеджера:\n\n{message.text}'
-            )
+            if message.chat.id == competition_manager:
+                bot.send_message(
+                    chat_id=chat_id,
+                    text=f'Ответ от куратора конкурса:\n\n{message.text}'
+                )
+            else:
+                bot.send_message(
+                    chat_id=chat_id,
+                    text=f'Ответ от менеджера:\n\n{message.text}'
+                )
             bot.send_message(
                 chat_id=message.chat.id,
                 text='Ответ пользователю успешно отправлен.'

@@ -1,7 +1,7 @@
 from telebot import types, TeleBot
 
 from .bot_states import MainMenuState
-from ..managers import managers, management
+from ..managers import managers, management, competition_manager
 
 
 def main_menu(bot: TeleBot, message):
@@ -11,11 +11,12 @@ def main_menu(bot: TeleBot, message):
         'Выбрать уровень образования',
         'Задать вопрос боту',
         'Оставить отзыв о боте',
+        'Инженерный конкурс',
         row_width=2
     )
     special_buttons = []
     # Для менеджеров добавляем кнопку для ответа на вопрос
-    if message.from_user.id in managers.values():
+    if message.from_user.id in managers.values() or message.from_user.id == competition_manager:
         special_buttons.append('Ответить на вопрос')
     # Для дирекции добавляем кнопку просмотра статистики
     if message.from_user.id in management:

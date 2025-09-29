@@ -29,3 +29,11 @@ class FeedbackState(StatesGroup):
 class AnswerState(StatesGroup):
     enter_id = State()
     enter_answer = State()
+
+
+class EngineeringCompetitionState(StatesGroup):
+    main_choice = State()
+    details_and_rules = State()
+    all_directions = State()
+    direction = State()
+    ask_question = State()
